@@ -213,6 +213,13 @@ in
     programs.zsh = {
       enable = mkEnableOption "Z shell (Zsh)";
 
+      package = mkOption {
+        type = with types; nullOr package;
+        default = pkgs.zsh;
+        defaultText = literalExpression "pkgs.zsh";
+        description = "zsh package to install.";
+      };
+
       autocd = mkOption {
         default = null;
         description = ''
@@ -493,12 +500,14 @@ in
         '')
 
         ''
-        for profile in ''${(z)NIX_PROFILES}; do
-          fpath+=($profile/share/zsh/site-functions $profile/share/zsh/$ZSH_VERSION/functions $profile/share/zsh/vendor-completions)
-        done
-
-        HELPDIR="${pkgs.zsh}/share/zsh/$ZSH_VERSION/help"
+          for profile in ''${(z)NIX_PROFILES}; do
+            fpath+=($profile/share/zsh/site-functions $profile/share/zsh/$ZSH_VERSION/functions $profile/share/zsh/vendor-completions)
+          done
         ''
+
+        (optionalString (cfg.package != null) ''
+          HELPDIR="${cfg.package}/share/zsh/$ZSH_VERSION/help"
+        '')
 
         (optionalString (cfg.defaultKeymap != null) ''
           # Use ${cfg.defaultKeymap} keymap as the default.
